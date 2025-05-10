@@ -1,7 +1,9 @@
 extends RigidBody3D
 
 # the colon next to the "=" is used to differentiate and group different variables from regular variables
-# 
+
+var speed := 1500;
+
 var mouse_sense := 0.001;  #the speed the camera rotates proportionally to the mouse input
 var twist_input := 0.0; #stores how much the mouse moves horizontally
 var pitch_input := 0.0; #stores how much the mouse moves vertically
@@ -19,13 +21,18 @@ func _process(delta: float) -> void:
 	input.x = Input.get_axis("move_left", "move_right");
 	input.z = Input.get_axis("move_forward", "move_backward");
 	
-	apply_central_force(twist_pivot.basis * input * 1200.0 * delta); #force in a 3D direction for the rigidbody #multiplying the velocity (direction * speed) by 1200.0 * delta
+	apply_central_force(twist_pivot.basis * input * speed * delta); #force in a 3D direction for the rigidbody #multiplying the velocity (direction * speed) by 1200.0 * delta
 	
+	var sprint := speed * 2.0;
+	if Input.is_action_pressed("move_fast"):
+		apply_central_force(twist_pivot.basis * input * sprint * delta);
+		
 	#stop mouse from being captured
+	#use custom input mouse_visible for itch
 	if Input.is_action_just_pressed("ui_cancel"): #in this condition the following code for the mouse input will make the cursor visible when the cancel action (esc input) is pressed
 		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE);
 		
-	if Input.is_action_just_pressed("mouse_appearance"):
+	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED);
 		
 	twist_pivot.rotate_y(twist_input);
@@ -45,3 +52,4 @@ func _unhandled_input(event: InputEvent) -> void: #if the mouse capture action i
 		if Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED: 
 			twist_input = -event.relative.x * mouse_sense; #values will be negative so the cam rotates in the same direction as mouse 
 			pitch_input = -event.relative.y * mouse_sense;
+			
